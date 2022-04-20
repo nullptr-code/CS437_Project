@@ -1,37 +1,72 @@
+from pycocotools.coco import COCO
 import numpy as np
-import json
-import pandas as pd
+import skimage.io as io
+import random
 import os
-from skimage.io import imread
-import matplotlib.pyplot as plt
-from matplotlib.collections import PatchCollection
-from matplotlib.patches import Rectangle
-import glob
 import cv2
-from torchsummary import summary
-import copy
-from tqdm import tqdm
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+### For visualizing the outputs ###
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 JSON_PATH = "dataset/annotation.json"
 IMAGE_PATH = "dataset/images/"
 ROWS, COL = (300, 300)
 
 
-annotation_data = None
-
-with open(JSON_PATH, "r") as f:
-    annotation_data = json.load(f)
-
-
-image_df = pd.DataFrame(annotation_data["images"])
-annotation_df = pd.DataFrame(annotation_data["annotations"])
-full_df = pd.merge(
-    annotation_df, image_df, how="left", left_on="image_id", right_on="id"
-).dropna()
-
-print(full_df.head())
-
-# image_df = pd.DataFrame(annotation_data)
+def getClassName(classID, cats):
+    for i in range(len(cats)):
+        if cats[i]['id']==classID:
+            return cats[i]['name']
+    return "None"
+    
+# Initialize the COCO api for instance annotations
+coco=COCO(JSON_PATH)
 
 
-# print(image_df.head())
+# #--------- getting specific classes----------------------
+filterClasses = ['building']
+
+# -------------getting all classes ---------------------------
+catIDs = coco.getCatIds()
+imgIds = coco.getImgIds(catIds=catIDs)
+
+
+catIDs = coco.getCatIds()
+cats = coco.loadCats(catIDs)
+
+print(cats);
+
+
+# Get all images containing the above Category IDs
+print("Number of images containing all the  classes:", len(imgIds))
+
+#-----------------------------------------------------------------------
+# load and display a random image
+#-----------------------------------------------------------------------
+img = coco.loadImgs(imgIds[np.random.randint(0,len(imgIds))])[0]
+I = io.imread(IMAGE_PATH  + img['file_name'])/255.0
+
+annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIDs, iscrowd=None)
+anns = coco.loadAnns(annIds)
+# print("annotation ids -> ", anns)
+# coco.showAnns(anns)
+
+print("Number of annotations in the image:", len(anns))
+
+
+#-----------------------------------------------------------------------
+# -------------------------------------adding masks
+#-----------------------------------------------------------------------
+mask = np.zeros((img['height'],img['width']))
+for i in range(len(anns)):
+    className = getClassName(anns[i]['category_id'], cats)
+    pixel_value = filterClasses.index(className)+1
+    mask = np.maximum(coco.annToMask(anns[i])*pixel_value, mask)
+
+fig = plt.figure(figsize=(8, 8))
+fig.add_subplot(2, 1, 1)
+plt.imshow(I)
+fig.add_subplot(2, 1, 2)
+plt.imshow(mask)
+plt.show()
