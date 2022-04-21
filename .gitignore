@@ -131,3 +131,4 @@ dmypy.json
 # dataset files
 dataset/
 weights/
+weights.zip
