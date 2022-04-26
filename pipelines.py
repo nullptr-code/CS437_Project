@@ -2,12 +2,13 @@ import torch
 import copy
 from tqdm.notebook import tqdm
 import os
+import cv2
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from util import threshold
 
 
-def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
 
+def train_model(model, dataloaders, criterion, optimizer, device, num_epochs=25):
     val_loss_history = []
     train_loss_history = []
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -63,3 +64,22 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25):
     print(f"Best Validation Loss: {best_loss:.4f}")
 
     return val_loss_history, train_loss_history
+
+def test_model(model, test_paths, label_paths, data_transforms,device, ROWS=256, COLS=256):
+    outputs = []
+    inputs = []
+    labels = []
+
+    for image_path, label_path in zip(test_paths, label_paths):
+        image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+        print(image.shape)
+        break
+        inputs.append(cv2.resize(image, (256, 256)))
+        image = data_transforms["image"](image).to(device=device)
+        image = image.reshape(1, *image.shape)
+        label = cv2.cvtColor(cv2.imread(label_path), cv2.COLOR_BGR2RGB)
+        labels.append(label)
+        output = model(image)[0].permute(1, 2, 0).detach().cpu().numpy()
+        
+        outputs.append(threshold(output))
+    return outputs, inputs, labels

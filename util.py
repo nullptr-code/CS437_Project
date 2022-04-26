@@ -19,3 +19,8 @@ def showImageRow(images, title=None):
         plt.xticks([])
         plt.yticks([])
     plt.show()
+
+def threshold(image, thres=0.5):
+    image[image > thres] = 1
+    image[image <= thres] = 0
+    return image

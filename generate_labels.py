@@ -10,6 +10,7 @@ import matplotlib.gridspec as gridspec
 from tqdm import tqdm
 
 JSON_PATH = "dataset/annotation.json"
+JSON_PATH = "dataset/mahd-shadow-annotation.json"
 IMAGE_PATH = "dataset/images/"
 ROWS, COL = (300, 300)
 
@@ -25,7 +26,8 @@ coco=COCO(JSON_PATH)
 
 
 # #--------- getting specific classes----------------------
-filterClasses = ['building']
+# filterClasses = ['building']
+filterClasses = ['Shadow']
 
 # -------------getting all classes ---------------------------
 catIDs = coco.getCatIds()
@@ -37,6 +39,12 @@ cats = coco.loadCats(catIDs)
 
 print(cats);
 
+NEW_IMAGE_PATH = "dataset/shadow-images/"
+
+for i in tqdm(imgIds):
+    img = coco.loadImgs(i)[0]
+    I = cv2.imread(IMAGE_PATH + img['file_name'])
+    cv2.imwrite(NEW_IMAGE_PATH + img['file_name'], I)
 
 # Get all images containing the above Category IDs
 print("Number of images containing all the  classes:", len(imgIds))
@@ -47,25 +55,25 @@ print("Number of images containing all the  classes:", len(imgIds))
 
 LABEL_PATH = "dataset/labels/"
 
-for i in tqdm(imgIds):
-    img = coco.loadImgs(i)[0]
-    I = io.imread(IMAGE_PATH + img['file_name'])
-    annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIDs, iscrowd=None)
-    anns = coco.loadAnns(annIds)
-    mask = np.zeros((img['height'],img['width']))
-    for i in range(len(anns)):
-        className = getClassName(anns[i]['category_id'], cats)
-        pixel_value = filterClasses.index(className)+1
-        mask = np.maximum(coco.annToMask(anns[i])*pixel_value, mask)
-    mask = mask.astype(np.int16) * 255
-    # fig = plt.figure(figsize=(8, 8))
-    # fig.add_subplot(2, 1, 1)
-    # plt.imshow(I)
-    # fig.add_subplot(2, 1, 2)
-    # plt.imshow(mask)
-    # plt.show()
-    cv2.imwrite(LABEL_PATH + img['file_name'], mask)
-    # break
+# for i in tqdm(imgIds):
+#     img = coco.loadImgs(i)[0]
+#     I = io.imread(IMAGE_PATH + img['file_name'])
+#     annIds = coco.getAnnIds(imgIds=img['id'], catIds=catIDs, iscrowd=None)
+#     anns = coco.loadAnns(annIds)
+#     mask = np.zeros((img['height'],img['width']))
+#     for i in range(len(anns)):
+#         className = getClassName(anns[i]['category_id'], cats)
+#         pixel_value = filterClasses.index(className)+1
+#         mask = np.maximum(coco.annToMask(anns[i])*pixel_value, mask)
+#     mask = mask.astype(np.int16) * 255
+#     # fig = plt.figure(figsize=(8, 8))
+#     # fig.add_subplot(2, 1, 1)
+#     # plt.imshow(I)
+#     # fig.add_subplot(2, 1, 2)
+#     # plt.imshow(mask)
+#     # plt.show()
+#     cv2.imwrite(LABEL_PATH + img['file_name'], mask)
+#     # break
 
 
 # img = coco.loadImgs(imgIds[np.random.randint(0,len(imgIds))])[0]
