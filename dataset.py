@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 from skimage.io import imread
 
 
-class BuildingDataset(Dataset):
+class CustomDataset(Dataset):
     def __init__(
         self, image_paths, label_paths, image_transforms=None, label_transforms=None
     ):
