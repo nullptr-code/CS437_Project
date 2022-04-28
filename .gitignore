@@ -133,5 +133,6 @@ dataset/
 weights/
 kaggle_weights/
 kaggle_weights2/
+shadow_weights/
 weights.zip
 dataset.zip
